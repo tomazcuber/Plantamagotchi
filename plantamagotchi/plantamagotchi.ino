@@ -1,5 +1,6 @@
 #include <DHT.h>
 #include <DHT_U.h>
+#include <BH1750.h>
 
 #define DHTPIN 3
 #define SOILPIN A0
@@ -11,10 +12,14 @@ int minSoilMoisture = 200;
 int maxSoilMoisture = 600;
 
 DHT dht(DHTPIN, DHTTYPE);
+BH1750 lightMeter;
 
 void setup() {
   pinMode(LEDPIN, OUTPUT);
   pinMode(LIGHTPIN, OUTPUT);
+  
+  Wire.begin();
+  lightMeter.begin();
   
   Serial.begin(9600);
   while (!Serial){
@@ -28,10 +33,10 @@ void loop() {
   float airTemperature;
   float airHumidity;
   float heatIndex;
-  int light;
+  float light;
   int soilMoisture;
   bool validAirConditions;
-   
+
   if(Serial.available() > 0){
     char state = Serial.read();
     if (state == '1'){
@@ -63,8 +68,8 @@ bool getAirConditions(float *temperature, float *humidity, float *heatIndex){
   return ret;
 }
 
-int getLight(){
-  int rawLightSensor = analogRead(LIGHTPIN);
+float getLight(){
+  float rawLightSensor = lightMeter.readLightLevel();
   return rawLightSensor;
 }
 
