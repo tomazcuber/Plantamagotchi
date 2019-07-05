@@ -36,6 +36,7 @@ void loop() {
   float light;
   int soilMoisture;
   bool validAirConditions;
+  bool plantHappy;
 
   if(Serial.available() > 0){
     char state = Serial.read();
@@ -46,14 +47,19 @@ void loop() {
       digitalWrite(LEDPIN, LOW);
     }    
   }
+  
   validAirConditions = getAirConditions(&airTemperature, &airHumidity, &heatIndex);
   if( !validAirConditions ){
     return;
   }
+  
   soilMoisture = getSoilMoisture();
   light = getLight();
+  
   Serial.println(String("SOIL MOISTURE: ") + soilMoisture + String("\tLIGHT: ") + light + String("\tTEMPURATURE: ") + airTemperature + String("\tHUMIDITY: ") + airHumidity + String("\tHEAT INDEX: ") + heatIndex);
-
+  plantHappy = isPlantHappy(airTemperature,soilMoisture);
+  Serial.println(plantHappy);
+  
   delay(1000);
 }
 
@@ -75,5 +81,22 @@ float getLight(){
 
 int getSoilMoisture(){
   int soilSensorOutput = analogRead(SOILPIN);
-  return map(constrain(soilSensorOutput, minSoilMoisture, maxSoilMoisture), minSoilMoisture, maxSoilMoisture, 0, 255);
+  //return map(constrain(soilSensorOutput, minSoilMoisture, maxSoilMoisture), minSoilMoisture, maxSoilMoisture, 0, 255);
+  return soilSensorOutput;
+}
+
+bool isPlantHappy(float airTemperature, int soilMoisture){
+  bool temperatureOk;
+  bool soilMoistureOk;
+  
+  if (airTemperature >= 18.00 && airTemperature <= 32.00) temperatureOk = true;//Temperaturas mínimas e máximas para crescimento vegetativo de tomates (18º C & 32º C) 
+  else temperatureOk = false;
+  if(soilMoisture >= 170 && soilMoisture <= 220) soilMoistureOk = true; //Umidade resgistrada pelo sensor de um tomate encharcado (~170) e de um tomate com a terra seca (~220)
+  else soilMoistureOk = false;
+  
+  if(soilMoistureOk && temperatureOk){
+  return true;
+  } else {
+  return false;
+  }
 }
